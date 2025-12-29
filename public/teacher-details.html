@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="teacher_details_title">تفاصيل المعلم</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            margin-bottom: 30px;
+        }
+
+        .info-title {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .plan-free {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .plan-pro {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-activate {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-activate:hover {
+            background: #218838;
+        }
+
+        .btn-deactivate {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-deactivate:hover {
+            background: #e0a800;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #138496;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #218838;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .edit-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #dc3545;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="teacher_details_header">📋 تفاصيل المعلم</h1>
+            <a href="super-admin.html" class="back-btn" data-i18n="back_to_list">← العودة للقائمة</a>
+        </div>
+
+        <div id="loading" class="loading" data-i18n="loading_msg">⏳ جاري التحميل...</div>
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="teacherDetails" style="display: none;">
+            <!-- Basic Info -->
+            <div class="info-section">
+                <div class="info-title" data-i18n="teacher_info_card">المعلومات الأساسية</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_name">الاسم</div>
+                        <div class="info-value" id="teacherName">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_email">البريد الإلكتروني</div>
+                        <div class="info-value" id="teacherEmail">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_username">اسم المستخدم</div>
+                        <div class="info-value" id="teacherUsername">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_status">الحالة</div>
+                        <div class="info-value" id="teacherStatus">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Info -->
+            <div class="info-section">
+                <div class="info-title" data-i18n="subscription_info">معلومات الاشتراك</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_plan">الخطة</div>
+                        <div class="info-value" id="teacherPlan">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="registration_date">تاريخ التسجيل</div>
+                        <div class="info-value" id="teacherCreated">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="expiry_date">تاريخ الانتهاء</div>
+                        <div class="info-value" id="teacherExpires">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="last_login">آخر دخول</div>
+                        <div class="info-value" id="teacherLastLogin">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="info-section">
+                <div class="info-title" data-i18n="stats">الإحصائيات</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_exams_count">عدد الامتحانات</div>
+                        <div class="info-value" id="teacherExams">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="label_students_count">عدد الطلاب</div>
+                        <div class="info-value" id="teacherStudents">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="max_exams">الحد الأقصى للامتحانات</div>
+                        <div class="info-value" id="teacherMaxExams">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-i18n="max_students">الحد الأقصى للطلاب</div>
+                        <div class="info-value" id="teacherMaxStudents">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <div id="editForm" class="edit-form" style="display: none;">
+                <div class="info-title" data-i18n="edit_teacher_settings">تعديل إعدادات المعلم</div>
+                <div class="form-group">
+                    <label data-i18n="label_plan">الخطة</label>
+                    <select id="editPlan">
+                        <option value="free">Free 🆓</option>
+                        <option value="pro">Pro 💎</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="max_students">الحد الأقصى للطلاب</label>
+                    <input type="number" id="editMaxStudents" placeholder="اتركه فارغاً لعدد غير محدود" min="0">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="max_exams">الحد الأقصى للامتحانات النشطة</label>
+                    <input type="number" id="editMaxExams" placeholder="اتركه فارغاً لعدد غير محدود" min="0">
+                </div>
+                <div class="actions">
+                    <button class="btn btn-save" onclick="saveChanges()" data-i18n="btn_save_changes">💾 حفظ
+                        التعديلات</button>
+                    <button class="btn btn-cancel" onclick="cancelEdit()" data-i18n="btn_cancel">❌ إلغاء</button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions" id="mainActions">
+                <button class="btn btn-edit" onclick="showEditForm()" data-i18n="btn_edit_settings">
+                    ✏️ تعديل الإعدادات
+                </button>
+                <button class="btn btn-activate" id="activateBtn" onclick="toggleStatus(true)" style="display: none;"
+                    data-i18n="btn_activate">
+                    ✅ تفعيل المعلم
+                </button>
+                <button class="btn btn-deactivate" id="deactivateBtn" onclick="toggleStatus(false)"
+                    style="display: none;" data-i18n="btn_suspend">
+                    ⏸️ إلغاء تفعيل المعلم
+                </button>
+                <button class="btn btn-delete" onclick="deleteTeacher()" data-i18n="btn_delete_teacher">
+                    🗑️ حذف المعلم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        let currentTeacherId = null;
+        let teacherData = null;
+
+        window.onload = function () {
+            const token = localStorage.getItem('authToken');
+            const userType = localStorage.getItem('userType');
+
+            if (!token || userType !== 'super_admin') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Get teacher ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentTeacherId = urlParams.get('id');
+
+            if (!currentTeacherId) {
+                showError(window.t('missing_teacher_id'));
+                return;
+            }
+
+            loadTeacherDetails();
+        };
+
+        function loadTeacherDetails() {
+            const token = localStorage.getItem('authToken');
+
+            fetch(`/api/super-admin/teachers/${currentTeacherId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed');
+                    return res.json();
+                })
+                .then(data => {
+                    teacherData = data;
+                    displayTeacherDetails(data);
+                })
+                .catch(err => {
+                    console.error(err);
+                    showError(window.t('fetch_error'));
+                });
+        }
+
+        function displayTeacherDetails(teacher) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('teacherDetails').style.display = 'block';
+
+            // Basic info
+            document.getElementById('teacherName').textContent = teacher.name || '-';
+            document.getElementById('teacherEmail').textContent = teacher.email || '-';
+            document.getElementById('teacherUsername').textContent = teacher.username || '-';
+
+            const statusEl = document.getElementById('teacherStatus');
+            statusEl.innerHTML = teacher.isActive
+                ? `<span class="status-badge status-active">${window.t('active_status')}</span>`
+                : `<span class="status-badge status-inactive">${window.t('inactive_status')}</span>`;
+
+            // Subscription info
+            const planEl = document.getElementById('teacherPlan');
+            planEl.innerHTML = teacher.plan === 'pro'
+                ? '<span class="plan-badge plan-pro">PRO 💎</span>'
+                : '<span class="plan-badge plan-free">FREE 🆓</span>';
+
+            document.getElementById('teacherCreated').textContent =
+                teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('ar-EG') : '-';
+            document.getElementById('teacherExpires').textContent =
+                teacher.expiresAt ? new Date(teacher.expiresAt).toLocaleDateString('ar-EG') : window.t('unlimited');
+            document.getElementById('teacherLastLogin').textContent =
+                teacher.lastLogin ? new Date(teacher.lastLogin).toLocaleDateString('ar-EG') : window.t('never');
+
+            // Stats
+            document.getElementById('teacherExams').textContent = teacher.totalExams || '0';
+            document.getElementById('teacherStudents').textContent = teacher.studentCount || '0';
+            document.getElementById('teacherMaxExams').textContent = teacher.maxActiveExams || window.t('unlimited');
+            document.getElementById('teacherMaxStudents').textContent = teacher.maxStudents || window.t('unlimited');
+
+            // Show appropriate action button
+            if (teacher.isActive) {
+                document.getElementById('deactivateBtn').style.display = 'block';
+                document.getElementById('activateBtn').style.display = 'none';
+            } else {
+                document.getElementById('activateBtn').style.display = 'block';
+                document.getElementById('deactivateBtn').style.display = 'none';
+            }
+        }
+
+        function toggleStatus(activate) {
+            const token = localStorage.getItem('authToken');
+            const confirmMsg = activate ? window.t('confirm_activate') : window.t('confirm_suspend');
+
+            if (!confirm(confirmMsg)) return;
+
+            fetch(`/api/super-admin/teachers/${currentTeacherId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ isActive: activate })
+            })
+                .then(res => res.json())
+                .then(() => {
+                    alert(window.t('action_success'));
+                    loadTeacherDetails();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('action_error'));
+                });
+        }
+
+        function deleteTeacher() {
+            if (!confirm(window.t('confirm_delete_teacher'))) return;
+
+            const token = localStorage.getItem('authToken');
+
+            fetch(`/api/super-admin/teachers/${currentTeacherId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(() => {
+                    alert(window.t('delete_success'));
+                    window.location.href = 'super-admin.html';
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('delete_fail'));
+                });
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = '❌ ' + message;
+        }
+
+        function showEditForm() {
+            // Populate form with current values
+            document.getElementById('editPlan').value = teacherData.plan || 'free';
+            document.getElementById('editMaxStudents').value = teacherData.maxStudents || '';
+            document.getElementById('editMaxExams').value = teacherData.maxActiveExams || '';
+
+            // Show form, hide actions
+            document.getElementById('editForm').style.display = 'block';
+            document.getElementById('mainActions').style.display = 'none';
+        }
+
+        function cancelEdit() {
+            document.getElementById('editForm').style.display = 'none';
+            document.getElementById('mainActions').style.display = 'flex';
+        }
+
+        function saveChanges() {
+            const plan = document.getElementById('editPlan').value;
+            const maxStudents = document.getElementById('editMaxStudents').value;
+            const maxExams = document.getElementById('editMaxExams').value;
+
+            const updateData = {
+                plan: plan,
+                maxStudents: maxStudents ? parseInt(maxStudents) : null,
+                maxActiveExams: maxExams ? parseInt(maxExams) : null
+            };
+
+            const token = localStorage.getItem('authToken');
+
+            fetch(`/api/super-admin/teachers/${currentTeacherId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            })
+                .then(res => res.json())
+                .then(() => {
+                    alert(window.t('save_success'));
+                    cancelEdit();
+                    loadTeacherDetails();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('action_error'));
+                });
+        }
+    </script>
+</body>
+
+</html>

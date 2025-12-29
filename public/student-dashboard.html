@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="student_dashboard_title">لوحة الطالب - نظام الاختبارات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .welcome {
+            color: #555;
+            font-size: 18px;
+            margin-top: 5px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .card-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .card-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .card-btn.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-item .label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 100%);
+            border-right: 5px solid #ffc107;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+
+        .info-banner h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1 data-i18n="student_header_title">🎓 لوحة الطالب</h1>
+                <p class="welcome" id="welcomeText">مرحباً</p>
+            </div>
+            <button class="logout-btn" onclick="logout()" data-i18n="logout_btn">🚪 تسجيل الخروج</button>
+        </div>
+
+        <div class="info-banner" id="infoBanner" style="display: none;">
+            <h3 data-i18n="info_title">💡 معلومة</h3>
+            <p id="infoText"></p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="number" id="completedExams">0</div>
+                <div class="label" data-i18n="stat_completed_exams">اختبارات مكتملة</div>
+            </div>
+            <div class="stat-item">
+                <div class="number" id="avgScore">-</div>
+                <div class="label" data-i18n="stat_average">المعدل</div>
+            </div>
+            <div class="stat-item">
+                <div class="number" id="pendingGrades">0</div>
+                <div class="label" data-i18n="stat_pending">قيد التصحيح</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Exams Card -->
+            <div class="card">
+                <div class="card-icon">📝</div>
+                <h2 data-i18n="card_exams_title">الاختبارات</h2>
+                <p data-i18n="card_exams_desc">تصفح واختر من الاختبارات المتاحة لك</p>
+                <a href="exams-list.html" class="card-btn" data-i18n="card_exams_btn">عرض الاختبارات</a>
+            </div>
+
+            <!-- Results Card -->
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <h2 data-i18n="card_results_title">نتائجي</h2>
+                <p data-i18n="card_results_desc">شاهد نتائجك التفصيلية، الدرجات النهائية، وتعليقات المعلم على إجاباتك
+                </p>
+                <a href="student-results.html" class="card-btn secondary" data-i18n="card_results_btn">عرض النتائج</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        window.onload = function () {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const userType = localStorage.getItem('userType');
+
+            if (!currentUser || userType !== 'student') {
+                alert(window.t('must_login'));
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('welcomeText').textContent = `${window.t('welcome_prefix')} ${currentUser.name} 👋`;
+            loadStats();
+        };
+
+        function loadStats() {
+            const token = localStorage.getItem('authToken');
+            fetch('/api/students/results', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(results => {
+                    document.getElementById('completedExams').textContent = results.length;
+
+                    if (results.length > 0) {
+                        const gradedResults = results.filter(r => r.is_graded);
+                        const pendingResults = results.filter(r => !r.is_graded);
+
+                        document.getElementById('pendingGrades').textContent = pendingResults.length;
+
+                        if (gradedResults.length > 0) {
+                            const totalScore = gradedResults.reduce((sum, r) => sum + r.final_score, 0);
+                            const totalPossible = gradedResults.reduce((sum, r) => sum + r.total_score, 0);
+                            const avgPercentage = totalPossible > 0 ? ((totalScore / totalPossible) * 100).toFixed(1) : 0;
+                            document.getElementById('avgScore').textContent = avgPercentage + '%';
+                        }
+
+                        if (pendingResults.length > 0) {
+                            document.getElementById('infoBanner').style.display = 'block';
+                            document.getElementById('infoText').textContent =
+                                window.t('pending_grading_msg').replace('{count}', pendingResults.length);
+                        }
+                    }
+                })
+                .catch(err => console.error('Load stats error:', err));
+        }
+
+        function logout() {
+            if (confirm(window.t('logout_confirm'))) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userType');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

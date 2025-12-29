@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="login_title">تسجيل الدخول - نظام الاختبارات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 30px 20px;
+                width: 95%;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1 data-i18n="system_title">🎓 نظام الاختبارات</h1>
+            <p data-i18n="welcome_msg">مرحباً بك في نظام الاختبارات الإلكتروني</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('student')" data-i18n="student_tab">طالب</button>
+            <button class="tab" onclick="switchTab('admin')" data-i18n="admin_tab">مسؤول</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Student Login -->
+        <div id="student-section" class="form-section active">
+            <form id="studentLoginForm" onsubmit="studentLogin(event)">
+                <div class="form-group">
+                    <label data-i18n="email_label">البريد الإلكتروني</label>
+                    <input type="email" id="studentEmail" placeholder="student@test.com" required
+                        value="student@test.com">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="password_label">كلمة المرور</label>
+                    <input type="password" id="studentPassword" placeholder="••••••" required value="123456">
+                </div>
+                <button type="submit" class="btn" data-i18n="student_login_btn">🔐 تسجيل الدخول</button>
+            </form>
+            <div class="link">
+                <span data-i18n="no_account">ليس لديك حساب؟</span> <a href="register.html" data-i18n="register_now">سجل
+                    الآن</a>
+            </div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="admin-section" class="form-section">
+            <form id="adminLoginForm" onsubmit="adminLogin(event)">
+                <div class="form-group">
+                    <label data-i18n="email_label">البريد الإلكتروني</label>
+                    <input type="email" id="adminUsername" placeholder="teacher@school.com"
+                        data-i18n="teacher_email_placeholder" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="password_label">كلمة المرور</label>
+                    <input type="password" id="adminPassword" placeholder="••••••" required value="admin123">
+                </div>
+                <button type="submit" class="btn" data-i18n="admin_login_btn">🔑 دخول المسؤول</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        function switchTab(type) {
+            const tabs = document.querySelectorAll('.tab');
+            const sections = document.querySelectorAll('.form-section');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            sections.forEach(section => section.classList.remove('active'));
+
+            if (type === 'student') {
+                tabs[0].classList.add('active');
+                document.getElementById('student-section').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('admin-section').classList.add('active');
+            }
+
+            hideMessage();
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        function studentLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('studentEmail').value;
+            const password = document.getElementById('studentPassword').value;
+
+            fetch('/api/auth/login', { // Student Login
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        showMessage(window.t('login_success'), 'success');
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('currentUser', JSON.stringify({
+                            name: data.student ? data.student.name : 'Student',
+                            email: email,
+                            role: 'student'
+                        }));
+                        localStorage.setItem('userType', 'student');
+
+                        setTimeout(() => {
+                            window.location.href = 'student-dashboard.html';
+                        }, 1000);
+                    } else {
+                        showMessage('❌ ' + (data.message || window.t('login_fail')), 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showMessage(window.t('server_error'), 'error');
+                });
+        }
+
+        function adminLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('adminUsername').value; // Changed ID slightly in concept, assume user inputs email or username
+            // Note: Backend expects email for teachers login
+            const password = document.getElementById('adminPassword').value;
+
+            fetch('/api/teachers/login', { // Teacher/Admin Login
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        showMessage(window.t('admin_login_success'), 'success');
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('currentUser', JSON.stringify({
+                            name: data.name,
+                            email: data.email,
+                            role: data.role // teacher or super_admin
+                        }));
+                        localStorage.setItem('userType', data.role === 'super_admin' ? 'super_admin' : 'teacher');
+
+                        setTimeout(() => {
+                            if (data.role === 'super_admin') {
+                                window.location.href = 'super-admin.html';
+                            } else {
+                                window.location.href = 'teacher-dashboard.html';
+                            }
+                        }, 1000);
+                    } else {
+                        showMessage('❌ ' + (data.message || window.t('login_fail')), 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showMessage(window.t('server_error'), 'error');
+                });
+        }
+    </script>
+</body>
+
+</html>

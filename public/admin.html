@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الأسئلة</title>
+    <style>
+        /* Reusing styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .question-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 400px;
+        }
+
+        .question-item {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .options {
+            margin-left: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center;">
+                <a href="manage-exams.html" class="back-link">←</a>
+                <h1 style="margin-right: 15px;">إدارة الأسئلة</h1>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">➕ إضافة سؤال</button>
+        </div>
+
+        <div class="question-list" id="questionsList">
+            <p style="text-align: center; color: #999;">جاري التحميل...</p>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">إضافة سؤال</h3>
+            <form onsubmit="saveQuestion(event)">
+                <div class="form-group">
+                    <label>نص السؤال</label>
+                    <textarea id="qText" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>النوع</label>
+                    <select id="qType" onchange="toggleType()">
+                        <option value="multiple-choice">اختيار من متعدد</option>
+                        <option value="calculation">حسابي</option>
+                        <option value="essay">مقالي</option>
+                    </select>
+                </div>
+
+                <!-- MC Options -->
+                <div id="optionsSection">
+                    <label>الخيارات (اختر الصحيحة)</label>
+                    <div id="optionsList"></div>
+                    <button type="button" onclick="addOptionField()" style="margin-top:5px; font-size:0.8em;">+
+                        خيار</button>
+                </div>
+
+                <!-- Calculation/Number -->
+                <div id="calcSection" style="display: none;">
+                    <label>الإجابة الصحيحة (رقم)</label>
+                    <input type="number" id="correctAnswerNum">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>النقاط</label>
+                    <input type="number" id="qPoints" value="1" min="1">
+                </div>
+
+                <div style="margin-top: 20px; text-align: left;">
+                    <button type="button" onclick="closeModal()" style="margin-left: 10px;">إلغاء</button>
+                    <button type="submit">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let examId = null;
+        let editingId = null;
+        let tempOptions = [];
+
+        window.onload = function () {
+            const token = localStorage.getItem('authToken');
+            if (!token) { window.location.href = 'login.html'; return; }
+
+            examId = localStorage.getItem('adminCurrentExamId');
+            if (!examId) {
+                alert('No exam selected');
+                window.location.href = 'manage-exams.html';
+                return;
+            }
+
+            loadQuestions();
+        };
+
+        function loadQuestions() {
+            const token = localStorage.getItem('authToken');
+            // Assuming we added GET /exams/:id/questions or similar.
+            // Earlier refactor (Step 84/85) added POST /exams/:id/questions.
+            // Did it add GET?
+            // Checking Step 85...
+            // It has POST, PUT, DELETE for questions.
+            // It uses `Exam` model to check ownership.
+            // It does NOT seem to have `GET /exams/:id/questions` in `teacher.js`.
+            // Wait, normally `GET /exams/:id` returns questions? Or a separate endpoint?
+            // I need `GET /exams/:id/questions` in `teacher.js` too!
+            // I will assume for now I need to add it, or use the `GET /exams` list if it included questions (it didn't).
+            // I will add GET /exams/:id/questions to teacher.js in next step. For now I write the fetch code.
+
+            fetch(`/api/teacher/exams/${examId}/questions`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    questions = data;
+                    renderQuestions();
+                })
+                .catch(err => console.error(err));
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsList');
+            if (questions.length === 0) {
+                container.innerHTML = '<p class="empty">لا توجد أسئلة بعد.</p>';
+                return;
+            }
+            container.innerHTML = questions.map(q => {
+                let details = '';
+                if (q.question_type === 'multiple-choice' && q.options) {
+                    details = q.options.map(o =>
+                        `<div class="${o.correct ? 'correct' : ''}">- ${o.text}</div>`
+                    ).join('');
+                } else if (q.question_type === 'calculation') {
+                    details = `الإجابة: ${q.correct_answer}`;
+                }
+
+                return `
+                <div class="question-item">
+                    <div class="question-header">
+                        <span>${q.question_text} (${q.points} نقاط)</span>
+                        <div>
+                             <button onclick="editQuestion(${q.id})">✏️</button>
+                             <button onclick="deleteQuestion(${q.id})">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="options">${details}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'إضافة سؤال';
+            document.getElementById('qText').value = '';
+            document.getElementById('qPoints').value = '1';
+            tempOptions = [{ text: '', correct: false }, { text: '', correct: false }];
+            renderOptionsInputs();
+            toggleType();
+            document.getElementById('questionModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('questionModal').classList.remove('active');
+        }
+
+        function toggleType() {
+            const type = document.getElementById('qType').value;
+            document.getElementById('optionsSection').style.display = type === 'multiple-choice' ? 'block' : 'none';
+            document.getElementById('calcSection').style.display = type === 'calculation' ? 'block' : 'none';
+        }
+
+        function renderOptionsInputs() {
+            const div = document.getElementById('optionsList');
+            div.innerHTML = tempOptions.map((opt, i) => `
+                <div style="margin-bottom:5px; display:flex; gap:5px;">
+                    <input type="text" value="${opt.text}" onchange="updateOptText(${i}, this.value)" placeholder="الخيار ${i + 1}">
+                    <input type="radio" name="correctOpt" ${opt.correct ? 'checked' : ''} onchange="setCorrect(${i})">
+                    <button type="button" onclick="removeOpt(${i})">x</button>
+                </div>
+            `).join('');
+        }
+
+        function addOptionField() {
+            tempOptions.push({ text: '', correct: false });
+            renderOptionsInputs();
+        }
+
+        function removeOpt(i) {
+            tempOptions.splice(i, 1);
+            renderOptionsInputs();
+        }
+
+        function updateOptText(i, val) {
+            tempOptions[i].text = val;
+        }
+
+        function setCorrect(i) {
+            tempOptions.forEach((o, idx) => o.correct = idx === i);
+        }
+
+        function deleteQuestion(id) {
+            if (!confirm('حذف؟')) return;
+            // Call API DELETE
+            fetch(`/api/teacher/exams/${examId}/questions/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+            }).then(() => loadQuestions());
+        }
+
+        function saveQuestion(e) {
+            e.preventDefault();
+            const type = document.getElementById('qType').value;
+            const text = document.getElementById('qText').value;
+            const points = document.getElementById('qPoints').value;
+
+            let payload = {
+                questionText: text,
+                questionType: type,
+                points: points
+            };
+
+            if (type === 'multiple-choice') {
+                payload.options = tempOptions;
+                // Validate
+                if (!tempOptions.some(o => o.correct)) { alert('اختر إجابة صحيحة'); return; }
+            } else if (type === 'calculation') {
+                payload.correctAnswer = document.getElementById('correctAnswerNum').value;
+            }
+
+            const url = editingId ? `/api/teacher/exams/${examId}/questions/${editingId}` : `/api/teacher/exams/${examId}/questions`;
+            const method = editingId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(() => {
+                    closeModal();
+                    loadQuestions();
+                })
+                .catch(err => console.error(err));
+        }
+
+        function editQuestion(id) {
+            const q = questions.find(x => x.id === id);
+            if (!q) return;
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'تعديل السؤال';
+            document.getElementById('qText').value = q.question_text;
+            document.getElementById('qType').value = q.question_type;
+            document.getElementById('qPoints').value = q.points;
+
+            if (q.question_type === 'multiple-choice') {
+                tempOptions = q.options || [];
+            } else if (q.question_type === 'calculation') {
+                document.getElementById('correctAnswerNum').value = q.correct_answer;
+            }
+
+            toggleType();
+            renderOptionsInputs();
+            document.getElementById('questionModal').classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

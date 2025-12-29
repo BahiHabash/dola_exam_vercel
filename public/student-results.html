@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="my_results_title">نتائجي - نظام الاختبارات</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .final-results {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .score-breakdown {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .score-breakdown p {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .score-breakdown .final {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .teacher-feedback {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 10px;
+            border-right: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+
+        .teacher-feedback h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .essay-grade {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 2px solid #e7f3ff;
+        }
+
+        .essay-grade strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .essay-grade .comment {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+
+        .pending-message {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            text-align: center;
+            color: #856404;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="user-header">
+        <div class="user-info">
+            <a href="student-dashboard.html"
+                style="color: white; text-decoration: none; margin-left: 15px; font-size: 24px; transition: transform 0.2s;"
+                title="العودة للصفحة الرئيسية" onmouseover="this.style.transform='scale(1.2)'"
+                onmouseout="this.style.transform='scale(1)'">🏠</a>
+            <span id="welcomeText" data-i18n="welcome_user">مرحباً بك</span>
+        </div>
+        <button class="logout-btn" onclick="logout()" data-i18n="logout_btn">تسجيل الخروج</button>
+    </div>
+
+    <div class="container">
+        <h1 data-i18n="my_results_header">📊 نتائجي</h1>
+
+        <div id="resultsContainer"></div>
+
+        <a href="student-dashboard.html" class="btn-back" data-i18n="back_to_dashboard">العودة للصفحة الرئيسية</a>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        window.onload = function () {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const userType = localStorage.getItem('userType');
+
+            if (!currentUser || userType !== 'student') {
+                alert(window.t('must_login'));
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('welcomeText').textContent = `${window.t('welcome_user')} ${currentUser.name} 👋`;
+            loadResults();
+        };
+
+        function logout() {
+            if (confirm(window.t('confirm_logout'))) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userType');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function loadResults() {
+            const token = localStorage.getItem('authToken');
+            fetch('/api/students/results', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(results => {
+                    const container = document.getElementById('resultsContainer');
+                    if (results.length === 0) {
+                        container.innerHTML = `
+                        <div class="pending-message">
+                            <h3>${window.t('no_results_msg')}</h3>
+                            <p>${window.t('solve_exam_first')}</p>
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    container.innerHTML = results.map(result => renderResultCard(result)).join('');
+                })
+                .catch(err => console.error('Load results error:', err));
+        }
+
+        function renderResultCard(result) {
+            const scores = result.scores || {};
+            const isPending = result.status === 'pending';
+            const passingScore = result.exam ? result.exam.passing_score : 50;
+            const passed = result.score >= passingScore;
+
+            let html = `
+                <div class="final-results">
+                    <h2 style="margin-bottom: 15px;">${result.exam ? result.exam.title : 'Exam'}</h2>
+                    
+                    <div class="score-breakdown">
+                        <p>${window.t('auto_score_label')} ${scores.autoScore || 0} / ${scores.totalAuto || 0}</p>
+            `;
+
+            if (isPending) {
+                html += `
+                    <p style="color: #ff9800;">${window.t('essay_pending_msg')}</p>
+                    <div class="status-badge status-pending">${window.t('pending_grading')}</div>
+                `;
+            } else {
+                html += `
+                    <p class="final">${window.t('final_score_label')} ${result.score} / ${result.total_score}</p>
+                    <div class="status-badge ${passed ? 'status-pass' : 'status-fail'}">
+                        ${passed ? window.t('status_pass') : window.t('status_fail')}
+                    </div>
+                `;
+            }
+
+            if (scores.essayGrades && scores.essayGrades.length > 0) {
+                html += `
+                    <div class="teacher-feedback">
+                        <h3>${window.t('teacher_feedback_title')}</h3>
+                        ${scores.essayGrades.map(grade => {
+                    const essay = scores.essayAnswers ? scores.essayAnswers.find(e => e.questionId === grade.questionId) : null;
+                    return `
+                                <div class="essay-grade">
+                                    <strong>${essay ? essay.questionText : 'Essay Question'}</strong>
+                                    <p>${window.t('your_score')} ${grade.grade !== null ? grade.grade : 'Waiting...'}</p>
+                                    ${grade.comment ? `<p class="comment">💬 ${grade.comment}</p>` : ''}
+                                </div>
+                            `;
+                }).join('')}
+                    </div>
+                `;
+            }
+
+            html += `
+                    <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                        ${window.t('submission_date')} ${new Date(result.submission_time).toLocaleString('ar-EG')}
+                    </p>
+                </div>
+            `;
+            return html;
+        }
+    </script>
+</body>
+
+</html>

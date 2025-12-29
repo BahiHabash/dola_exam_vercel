@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <title data-i18n="quiz_page_title">الاختبار</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="user-header">
+        <div class="user-info">
+            <a href="student-dashboard.html"
+                style="color: white; text-decoration: none; margin-left: 15px; font-size: 24px; transition: transform 0.2s;"
+                title="العودة للصفحة الرئيسية" onmouseover="this.style.transform='scale(1.2)'"
+                onmouseout="this.style.transform='scale(1)'">🏠</a>
+            <span id="welcomeText" data-i18n="welcome_user">مرحباً بك</span>
+        </div>
+        <button class="logout-btn" onclick="logout()" data-i18n="logout_btn">تسجيل الخروج</button>
+    </div>
+
+    <div class="container">
+        <div
+            style="background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 id="examTitle" style="color: #667eea; margin: 0 0 5px 0; font-size: 20px;">الاختبار</h2>
+            <p id="examSubject" style="color: #666; margin: 0; font-size: 14px;">المادة</p>
+        </div>
+
+        <div id="timer"><span data-i18n="time_remaining">الوقت المتبقي:</span> 00:00</div>
+
+        <div id="studentInfo" style="display: none;">
+            <label data-i18n="student_name_label">اسم الطالب:</label>
+            <input type="text" id="studentName" placeholder="اكتب اسمك" readonly>
+        </div>
+
+        <form id="quizForm">
+            <!-- Questions will be loaded dynamically here -->
+        </form>
+
+        <button type="button" class="submit-btn" onclick="submitQuiz()" data-i18n="submit_quiz_btn">إنهاء
+            الاختبار</button>
+
+        <div id="result"></div>
+
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Override the default alert/confirm in script.js if possible, or add listeners here
+        // Since script.js is separate, we'll try to patch key functions if they are global
+        // or just rely on lang.js being loaded first and accessible in window.t
+
+        // Correct the home tooltip dynamically
+        document.querySelector('a[title="العودة للصفحة الرئيسية"]').title = window.t('home_tooltip');
+        document.getElementById('studentName').placeholder = window.t('student_name_placeholder');
+
+        // Monkey-patching global functions if they exist in script.js (assuming simple structure)
+        // If script.js logic is closed, we might need to edit script.js directly.
+        // For now, let's assume we need to edit script.js too for full coverage,
+        // but this file edit covers the static HTML parts.
+    </script>
+</body>
+
+</html>

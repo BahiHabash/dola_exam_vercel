@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="essay_review_title">تصحيح الأسئلة المقالية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filters button,
+        .btn-refresh {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filters button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn-refresh {
+            color: #667eea;
+            border-color: #667eea;
+        }
+
+        .btn-refresh:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .submission-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-right: 5px solid #ffc107;
+            /* Pending color */
+        }
+
+        .submission-card.graded {
+            border-right-color: #28a745;
+            /* Graded color */
+        }
+
+        .student-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .student-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .submission-time {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .question-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .student-answer {
+            background: white;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            color: #2d3748;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .grading-area {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            margin-top: 10px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .grade-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .save-btn:hover {
+            background: #218838;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-graded {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="essay_review_header">📝 تصحيح الأسئلة المقالية</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="manage-questions.html" class="back-btn" data-i18n="nav_manage_questions">إدارة الأسئلة</a>
+                <a href="teacher-dashboard.html" class="back-btn" data-i18n="back_to_dashboard">← الرجوع</a>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="filters">
+                <button class="active" onclick="filterSubmissions('all')" data-i18n="filter_all">جميع الطلاب</button>
+                <button onclick="filterSubmissions('pending')" data-i18n="filter_pending">قيد الانتظار</button>
+                <button onclick="filterSubmissions('graded')" data-i18n="filter_graded">تم التصحيح</button>
+            </div>
+            <button class="btn-refresh" onclick="loadSubmissions()" data-i18n="btn_refresh">🔄 تحديث</button>
+        </div>
+
+        <div id="submissionsList">
+            <!-- Cards will be injected here -->
+        </div>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        let allSubmissions = [];
+
+        window.onload = function () {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadSubmissions();
+        };
+
+        function loadSubmissions() {
+            const token = localStorage.getItem('authToken');
+
+            fetch('/api/admin/essay-submissions', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    allSubmissions = data;
+                    renderSubmissions(allSubmissions);
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('submissionsList').innerHTML = `<p style="text-align:center; color: red;">${window.t('fetch_error')}</p>`;
+                });
+        }
+
+        function renderSubmissions(submissions) {
+            const container = document.getElementById('submissionsList');
+            container.innerHTML = '';
+
+            if (submissions.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; background: white; border-radius: 10px;">
+                    <h3>${window.t('no_submissions_msg')}</h3>
+                    <p>${window.t('no_submissions_desc')}</p>
+                </div>`;
+                return;
+            }
+
+            submissions.forEach(sub => {
+                const isGraded = sub.status === 'graded';
+                const card = document.createElement('div');
+                card.className = `submission-card ${isGraded ? 'graded' : ''}`;
+
+                let questionsHtml = '';
+                sub.answers.forEach(ans => {
+                    questionsHtml += `
+                        <div class="question-block">
+                            <div class="question-text">Q: ${ans.questionText || window.t('question')}</div>
+                            <div class="student-answer">
+                                <strong>${window.t('student_answer_label')}</strong><br>
+                                ${ans.answerText || window.t('not_answered')}
+                            </div>
+                            <div class="grading-area">
+                                <div>
+                                    <label>${window.t('grade_label')}</label><br>
+                                    <input type="number" 
+                                           class="grade-input" 
+                                           id="grade-${sub.submissionId}-${ans.questionId}" 
+                                           value="${ans.grade !== null ? ans.grade : ''}" 
+                                           min="0" max="${ans.maxScore || 10}">
+                                           <span style="font-size: 12px; color: #666">/ ${ans.maxScore || 10}</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>${window.t('comment_label')}</label><br>
+                                    <input type="text" 
+                                           class="comment-input" 
+                                           id="comment-${sub.submissionId}-${ans.questionId}" 
+                                           value="${ans.comment || ''}" 
+                                           placeholder="${window.t('comment_placeholder')}">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="student-info">
+                        <div>
+                            <span class="student-name">${sub.studentName}</span>
+                            <div class="submission-time">${new Date(sub.submittedAt).toLocaleString('ar-EG')}</div>
+                        </div>
+                        <div class="status-badge ${isGraded ? 'badge-graded' : 'badge-pending'}">
+                            ${isGraded ? window.t('badge_graded') : window.t('badge_pending')}
+                        </div>
+                    </div>
+                    <div>${questionsHtml}</div>
+                    <div class="action-row">
+                        <button class="save-btn" onclick="saveGrades('${sub.submissionId}')">${window.t('btn_save_grades')}</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterSubmissions(filter) {
+            // Update UI buttons
+            document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            let filtered = [];
+            if (filter === 'all') {
+                filtered = allSubmissions;
+            } else if (filter === 'pending') {
+                filtered = allSubmissions.filter(s => s.status === 'pending');
+            } else if (filter === 'graded') {
+                filtered = allSubmissions.filter(s => s.status === 'graded');
+            }
+            renderSubmissions(filtered);
+        }
+
+        function saveGrades(submissionId) {
+            const sub = allSubmissions.find(s => s.submissionId === submissionId);
+            if (!sub) return;
+
+            const grades = [];
+            let isValid = true;
+
+            sub.answers.forEach(ans => {
+                const gradeInput = document.getElementById(`grade-${submissionId}-${ans.questionId}`);
+                const commentInput = document.getElementById(`comment-${submissionId}-${ans.questionId}`);
+
+                const gradeVal = parseFloat(gradeInput.value);
+
+                if (isNaN(gradeVal) || gradeVal < 0) {
+                    isValid = false;
+                    gradeInput.style.borderColor = 'red';
+                } else {
+                    gradeInput.style.borderColor = '#cbd5e0';
+                    grades.push({
+                        questionId: ans.questionId,
+                        grade: gradeVal,
+                        comment: commentInput.value.trim()
+                    });
+                }
+            });
+
+            if (!isValid) {
+                alert(window.t('invalid_grade_error'));
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            fetch('/api/admin/grade-essay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    submissionId: submissionId,
+                    grades: grades
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(window.t('grades_saved_success'));
+                    loadSubmissions(); // Refresh
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('fetch_error'));
+                });
+        }
+    </script>
+</body>
+
+</html>

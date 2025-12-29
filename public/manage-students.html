@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="manage_students_title">إدارة الطلاب</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .actions-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .content-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .edit-btn {
+            color: #667eea;
+        }
+
+        .delete-btn {
+            color: #f5576c;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+        }
+
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .btn-cancel {
+            background: #ccc;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .actions-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="manage_students_header">👥 إدارة الطلاب</h1>
+            <button class="btn btn-back" onclick="location.href='teacher-dashboard.html'"
+                data-i18n="btn_back_dashboard">العودة للوحة التحكم</button>
+        </div>
+
+        <div class="actions-bar">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 البحث عن طالب..."
+                data-i18n="search_placeholder">
+            <button class="btn btn-success" onclick="openAddModal()" data-i18n="add_student_btn">➕ إضافة طالب
+                جديد</button>
+        </div>
+
+        <div class="content-card">
+            <h2 data-i18n="students_list_title">قائمة الطلاب</h2>
+            <div class="table-responsive">
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_number">الرقم</th>
+                            <th data-i18n="th_name">الاسم</th>
+                            <th data-i18n="th_email">البريد الإلكتروني</th>
+                            <th data-i18n="th_registration_date">تاريخ التسجيل</th>
+                            <th data-i18n="th_completed_exams">الاختبارات المكتملة</th>
+                            <th data-i18n="th_average_score">المعدل</th>
+                            <th data-i18n="th_actions">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="empty-state-icon">⏳</div>
+                                <div data-i18n="loading_msg">جاري تحميل البيانات...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle" data-i18n="modal_add_student">إضافة طالب جديد</h2>
+            </div>
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <div class="form-group">
+                    <label for="studentName" data-i18n="label_full_name">الاسم الكامل *</label>
+                    <input type="text" id="studentName" required placeholder="أدخل اسم الطالب">
+                </div>
+                <div class="form-group">
+                    <label for="studentEmail" data-i18n="label_email">البريد الإلكتروني *</label>
+                    <input type="email" id="studentEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="studentPassword">
+                        <span data-i18n="label_password">كلمة المرور</span>
+                        <span id="passwordHint" data-i18n="password_hint">(اتركها فارغة للإبقاء على القديمة)</span>
+                    </label>
+                    <input type="password" id="studentPassword" placeholder="******">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()"
+                        data-i18n="btn_cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-success" data-i18n="btn_save">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script>
+        let students = [];
+        let editMode = false;
+
+        window.onload = function () {
+            const token = localStorage.getItem('authToken');
+            const userType = localStorage.getItem('userType');
+
+            if (!token || !['admin', 'teacher', 'super_admin'].includes(userType)) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            loadStudents();
+
+            // Search functionality
+            document.getElementById('searchBox').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredStudents = students.filter(s =>
+                    s.name.toLowerCase().includes(searchTerm) ||
+                    s.email.toLowerCase().includes(searchTerm)
+                );
+                renderStudents(filteredStudents);
+            });
+
+            // Apply placeholder translations
+            document.getElementById('searchBox').placeholder = window.t('search_placeholder');
+        };
+
+        function loadStudents() {
+            const token = localStorage.getItem('authToken');
+            fetch('/api/admin/students', { // Changed to admin API
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    students = data;
+                    renderStudents(students);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('fetch_error'));
+                });
+        }
+
+        function renderStudents(studentsToRender) {
+            const tbody = document.getElementById('studentsTableBody');
+
+            if (studentsToRender.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>${window.t('no_students_msg')}</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = studentsToRender.map((student, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${new Date(student.registrationDate).toLocaleDateString('ar-EG')}</td>
+                    <td>${student.completedExams || 0}</td>
+                    <td>${student.averageScore ? student.averageScore.toFixed(1) : '-'}</td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="icon-btn edit-btn" onclick="openEditModal(${student.id})" title="${window.t('btn_edit')}">✏️</button>
+                            <button class="icon-btn delete-btn" onclick="deleteStudent(${student.id})" title="${window.t('btn_delete')}">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddModal() {
+            editMode = false;
+            document.getElementById('modalTitle').textContent = window.t('modal_add_student');
+            document.getElementById('passwordHint').style.display = 'none';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentPassword').required = true;
+            document.getElementById('studentModal').style.display = 'block';
+        }
+
+        function openEditModal(studentId) {
+            editMode = true;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('modalTitle').textContent = window.t('modal_edit_student');
+            document.getElementById('passwordHint').style.display = 'inline';
+            document.getElementById('studentId').value = student.id;
+            document.getElementById('studentName').value = student.name;
+            document.getElementById('studentEmail').value = student.email;
+            document.getElementById('studentPassword').value = '';
+            document.getElementById('studentPassword').required = false;
+            document.getElementById('studentModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('studentModal').style.display = 'none';
+            document.getElementById('studentForm').reset();
+        }
+
+        document.getElementById('studentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const studentId = document.getElementById('studentId').value;
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            const password = document.getElementById('studentPassword').value;
+
+            const data = { name, email };
+            if (password) data.password = password;
+
+            const token = localStorage.getItem('authToken');
+            const url = editMode ? `/api/admin/students/${studentId}` : '/api/admin/students'; // Changed to admin API
+            const method = editMode ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.message) {
+                        alert(result.message);
+                        if (!result.message.includes('already exists') && !result.message.includes('limit')) {
+                            closeModal();
+                            loadStudents();
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('action_error')); // You might need to add this key in lang.js if not present, otherwise use generic error
+                });
+        });
+
+        function deleteStudent(studentId) {
+            if (!confirm(window.t('confirm_delete_student'))) {
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            fetch(`/api/admin/students/${studentId}`, { // Changed to admin API
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(result => {
+                    alert(result.message || window.t('delete_success'));
+                    loadStudents();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(window.t('delete_fail'));
+                });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('studentModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+
+</html>
