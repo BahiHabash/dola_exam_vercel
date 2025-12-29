@@ -2,18 +2,16 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
+require('pg');
+
 const { Sequelize } = require('sequelize');
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL is required in production');
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required');
 }
 
-let sequelize;
-
 if (!global._sequelize) {
-  global._sequelize = new Sequelize(databaseUrl, {
+  global._sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     logging: false,
     dialectOptions: {
@@ -26,6 +24,4 @@ if (!global._sequelize) {
   });
 }
 
-sequelize = global._sequelize;
-
-module.exports = sequelize;
+module.exports = global._sequelize;
